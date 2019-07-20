@@ -52,50 +52,32 @@ app.use(session({
 }));
 //end-session
 
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
+
 //basic auth
 function auth(req, res, next) {
  // console.log(req.signedCookies);
   if (!req.session.user) {
     var authHeader = req.headers.authorization;
-    if (!authHeader) {
-      var err = new Error("you are noot authenticated");
-
-      res.setHeader("WWW-Authenticate", "Basic");
-      err.status = 401;
-      return next(err);
-    }
-    var auth = new Buffer.from(authHeader.split(" ")[1], "base64")
-      .toString()
-      .split(":");
-
-    var username = auth[0];
-    var password = auth[1];
-
-    if (username == "admin" && password == "password") {
-     // res.cookie('user','admin',{signed : true});
-      req.session.user == 'admin';
-      next();
-    } else {
-      var err = new Error("you are noot authenticated");
-
-      res.setHeader("WWW-Authenticate", "Basic");
-      err.status = 401;
-      return next(err);
-    }
+    
+    var err = new Error("you are noot authenticated");
+    err.status = 401;
+    return next(err);
+    
   }
   else{
-    if(req.session.user === 'admin'){
+    if(req.session.user === 'authenticated'){
       next();
     }
     else{
-      var err = new Error("you are noot authenticated");
-
-      res.setHeader("WWW-Authenticate", "Basic");
-      err.status = 401;
+      var err = new Error("you are not authenticated");
+      err.status = 403;
       return next(err);
     }
   }
 }
+
 
 app.use(auth);
 //
@@ -104,10 +86,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
 
-app.use(express.static(path.join(__dirname, "public")));
+
 
 app.use("/dishes", dishRouter);
 app.use("/leaders", leaderRouter);
